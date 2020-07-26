@@ -19,10 +19,6 @@ tags: Unity C# uGUI
 - BGMとSEの音量を独立して設定できます。
 - 全体の一時的なミュートが可能です。
 
-# アセットの入手 (GitHub)
-ダウンロード ⇒ [SoundManager.unitypackage](https://github.com/tetr4lab/SoundManager/raw/master/SoundManager.unitypackage)
-[ソースはこちらです。](https://github.com/tetr4lab/SoundManager)
-
 # 使い方
 ### 準備
 - プロジェクトにアセットをインポートしてください。
