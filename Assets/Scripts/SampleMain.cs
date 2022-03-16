@@ -8,75 +8,104 @@ using SoundManager;
 public class SampleMain : MonoBehaviour {
 
 	// オブジェクト要素
-	/// <summary>音量スライダー</summary>
+	// 効果音パネル
+	[SerializeField] private Image [] effectPanals = default;
+	// 曲パネル
+	[SerializeField] private Image [] musicPanels = default;
+	// 音量スライダー
 	[SerializeField] private Slider effectVolumeSlider = default;
 	[SerializeField] private Slider musicVolumeSlider = default;
+	[SerializeField] private Slider musicTempVolumeSlider = default;
+	// 消音トグル
 	[SerializeField] private Toggle soundMuteToggle = default;
-
-	// 効果音番号 ©効果音ラボ https://soundeffect-lab.info/
-	public const int SE_Started = 0;
-	public const int SE_SwordGesture1 = 1;
-	public const int SE_SwordSlash1 = 2;
-	public const int SE_MagicFlame2 = 3;
-	public const int SE_Thunderstorm1 = 4;
-	// 楽曲音番号 ©魔王魂 https://maoudamashii.jokersounds.com/
-	public const int BGM_Fantasy01 = 0;
-	public const int BGM_Fantasy15 = 1;
-	public const int BGM_Neorock83 = 2;
-	public const int BGM_Orchestra16 = 3;
-
+	// 再生中パネル色
+	[SerializeField] private Color activeEffectColor = Color.white;
+	[SerializeField] private Color activeMusicColor = Color.white;
 
 	/// <summary>初期化</summary>
 	private void Start () {
-		musicVolumeSlider.normalizedValue = Sound.MusicVolume;
+		Debug.Log ("Start");
 		effectVolumeSlider.normalizedValue = Sound.EffectVolume;
+		musicVolumeSlider.normalizedValue = Sound.MusicVolume;
+		musicTempVolumeSlider.normalizedValue = Sound.MusicTmpVolume;
 		soundMuteToggle.isOn = Sound.Mute;
-		Debug.Log ("Started");
-		Sound.Effect = SE_Started; // 起動しました。
-		Sound.Effect = SE_Thunderstorm1; // 雷雨
-		Sound.Music = BGM_Neorock83; // ロックなBGM
+		OnPressSEButton (SE.Started); // 起動しました。
+		OnPressSEButton (SE.Thunderstorm1); // 雷雨
+		OnPressSMButton (-2);
+	}
+
+	/// <summary>駆動</summary>
+    private void Update () {
+		// 再生中のパネルに着色
+        for (var i = 0; i < effectPanals.Length; i++) {
+			effectPanals [i].color = Color.white;
+		}
+		foreach (var i in Sound.Effects) {
+			if (i < effectPanals.Length) {
+				effectPanals [i].color = activeEffectColor;
+            }
+        }
+		for (var i = 0; i < musicPanels.Length; i++) {
+			musicPanels [i].color = Color.white;
+        }
+		foreach (var i in Sound.Musics) {
+			if (i < musicPanels.Length) {
+				musicPanels [i].color = activeMusicColor;
+			}
+		}
 	}
 
 	/// <summary>効果音ボタン 重複再生</summary>
 	public void OnPressSEButton (int number) {
-		Debug.Log ($"Play SE {number}");
+		Debug.Log ($"Play Effect {number}");
 		Sound.Effect = number; // -1なら全停止
 	}
 
 	/// <summary>効果音ボタン 同音が再生中なら止めてから再生</summary>
 	public void OnPressStopPlusButton (int number) {
-		Debug.Log ($"Stop & Play SE {number}");
+		Debug.Log ($"Stop & Play Effect {number}");
 		Sound.StopAndEffect = number;
 	}
 
 	/// <summary>効果音ボタン 同音が再生中でなければ再生</summary>
 	public void OnPressIfNotButton (int number) {
-		Debug.Log ($"Play SE {number} If not playing");
+		Debug.Log ($"Play Effect {number} If not playing");
 		Sound.EffectIfNot = number;
 	}
 
 	/// <summary>効果音ボタン 停止</summary>
 	public void OnPressSEStopButton (int number) {
-		Debug.Log ($"Stop SE {number}");
+		Debug.Log ($"Stop Effect {number}");
 		Sound.EffectStop = number;
 	}
 
 	/// <summary>効果音 音量設定</summary>
 	public void OnChangeEffectVolumeSlider () {
-		Debug.Log ($"SE Volue {effectVolumeSlider.normalizedValue}");
+		Debug.Log ($"Effect Volue {effectVolumeSlider.normalizedValue}");
 		Sound.EffectVolume = effectVolumeSlider.normalizedValue;
 	}
 
 	/// <summary>楽曲音ボタン 切り替え</summary>
 	public void OnPressSMButton (int number) {
-		Debug.Log ($"Play BGM {number}");
-		Sound.Music = number; // -1なら停止
+		if (number == -2) {
+			Debug.Log ($"Play Music List");
+			Sound.Playlist = new [] { BGM.Neorock83, BGM.Fantasy01, BGM.Orchestra16, BGM.Fantasy15, };
+		} else {
+			Debug.Log ($"Play Music {number}");
+			Sound.Music = number; // -1なら停止
+		}
 	}
 
 	/// <summary>楽曲音 音量設定</summary>
 	public void OnChangeMusicVolumeSlider () {
-		Debug.Log ($"BGM Volue {musicVolumeSlider.normalizedValue}");
+		Debug.Log ($"Music Volue {musicVolumeSlider.normalizedValue}");
 		Sound.MusicVolume = musicVolumeSlider.normalizedValue;
+	}
+
+	/// <summary>楽曲音 一時音量設定</summary>
+	public void OnChangeMusicTempVolumeSlider () {
+		Debug.Log ($"Music Temp Volue {musicTempVolumeSlider.normalizedValue}");
+		Sound.MusicTmpVolume = musicTempVolumeSlider.normalizedValue;
 	}
 
 	/// <summary>消音トグル</summary>
