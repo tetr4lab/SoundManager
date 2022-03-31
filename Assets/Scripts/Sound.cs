@@ -76,13 +76,13 @@ namespace SoundManager {
 		// メンバー要素
 		/// <summary>ミュート</summary>
 		protected bool soundMute = false;
-		/// <summary>効果音発生体</summary>
+		/// <summary>効果音発声体</summary>
 		protected AudioSource [] seSource;
 		/// <summary>効果音再生開始時</summary>
 		protected DateTime [] sePlayTime;
 		/// <summary>効果音基準音量</summary>
 		protected float seVolume;
-		/// <summary>楽曲音発生体</summary>
+		/// <summary>楽曲音発声体</summary>
 		protected AudioSource [] smSource;
 		/// <summary>楽曲音再生状態</summary>
 		protected musicStatus [] smState;
@@ -90,7 +90,7 @@ namespace SoundManager {
 		protected musicStatus [] smLastState;
 		/// <summary>楽曲音状態残存時間</summary>
 		protected float [] smRemainTime;
-		/// <summary>楽曲音発生チャネル</summary>
+		/// <summary>楽曲音発声チャネル</summary>
 		protected int smPlayChannel;
 		/// <summary>楽曲音量係数</summary>
 		protected float smCoefficient = MaximumVolume;
@@ -100,6 +100,10 @@ namespace SoundManager {
 		protected int [] playlist;
 		/// <summary>楽曲音再生インデックス</summary>
 		protected int playindex;
+		/// <summary>楽曲発声サブチャネル</summary>
+		protected virtual int smSubChannel => musicSubChannel (smPlayChannel);
+		/// <summary>楽曲サブチャネル</summary>
+		protected virtual int musicSubChannel (int mainChannel) => (mainChannel == 0) ? 1 : 0;
 
 		/// <summary>起動</summary>
 		protected virtual void Awake () => Add (this);
@@ -156,7 +160,6 @@ namespace SoundManager {
 		protected virtual void Update () {
 			if (!inited || sound != this) { return; }
 			for (var i = 0; i < smSource.Length; i++) {
-				var smsc = subChannel (i);
 				if (smLastState [i] != smState [i]) {
 					switch (smState [i]) {
 						case musicStatus.STOP:
@@ -172,7 +175,7 @@ namespace SoundManager {
 							}
 							break;
 						case musicStatus.WAIT_INTERVAL:
-							smRemainTime [i] = ((smState [smsc] == musicStatus.FADEOUT) ? soundMusicFadeOutTime : 0) + soundMusicIntervalTime;
+							smRemainTime [i] = ((smState [musicSubChannel (i)] == musicStatus.FADEOUT) ? soundMusicFadeOutTime : 0) + soundMusicIntervalTime;
 							smSource [i].volume = MinimumVolume;
 							break;
 						case musicStatus.FADEIN:
@@ -308,13 +311,10 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>サブチャネル</summary>
-		protected virtual int subChannel (int main) => (main == 0) ? 1 : 0;
-
-		/// <summary>音量の大きいチャネル</summary>
-		protected int musicLouderChannel {
+		/// <summary>音量の大きい楽曲チャネル</summary>
+		protected int smLouderChannel {
 			get {
-				var smsc = subChannel (smPlayChannel);
+				var smsc = smSubChannel;
 				if (smSource [smsc].isPlaying) {
 					if (smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].volume >= smSource [smsc].volume) {
 						return smPlayChannel;
@@ -342,7 +342,7 @@ namespace SoundManager {
 		protected virtual int music {
 			get => Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
 			set {
-				var smsc = subChannel (smPlayChannel); // 裏チャネル
+				var smsc = smSubChannel; // 裏チャネル
 				if (value < 0 || value >= soundMusicClip.Length) {
 					smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP; // 表をフェードアウト
 					smState [smsc] = musicStatus.STOP; // 裏を停止
@@ -352,8 +352,8 @@ namespace SoundManager {
 						smState [smsc] = musicStatus.FADEIN; // 裏を開始
 						smPlayChannel = smsc; // 表裏入れ替え
 					} else if (!smSource [smPlayChannel].isPlaying || smSource [smPlayChannel].clip != soundMusicClip [value]) { // どちらとも一致しない
-						smPlayChannel = musicLouderChannel; // やかましい方を表に
-						smsc = subChannel (smPlayChannel);
+						smPlayChannel = smLouderChannel; // やかましい方を表に
+						smsc = smSubChannel; // 裏チャネル再算定
 						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP; // 表をフェードアウト
 						smLastState [smsc] = musicStatus.STOP; // 裏を即時停止
 						smSource [smsc].Stop ();
