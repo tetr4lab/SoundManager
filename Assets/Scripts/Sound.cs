@@ -331,11 +331,11 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>楽曲音が再生中 (フェードイン中と再生待機中を含むがフェードアウト中は含まない)</summary>
+		/// <summary>楽曲音が再生中</summary>
 		protected virtual bool isPlayingMusic {
 			get {
 				for (var i = 0; i < smSource.Length; i++) {
-					if ((smSource [i].isPlaying && smState [i] != MusicStatus.FADEOUT) || smState [i] == MusicStatus.WAIT_INTERVAL) {
+					if (smSource [i].isPlaying || smState [i] == MusicStatus.WAIT_INTERVAL) {
 						return true;
 					}
 				}
@@ -343,7 +343,7 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>再生中の全楽曲音 (フェードイン/アウト中と再生待機中を含む)</summary>
+		/// <summary>再生中の全楽曲音</summary>
 		protected virtual int [] musics {
 			get {
 				var found = new List<int> { };
@@ -418,21 +418,22 @@ namespace SoundManager {
 					musicLoop = true;
 					return;
 				} else if (isPlayingMusic && playingSamelist (playlist, value)) {
-					// 同じプレイリストが再生中なら何もしない
-					return;
-                }
-				playlist = value;
-				playindex = int.MaxValue;
-				// 再生中の曲がリストにあればそこから開始
-				for (var i = 0; i < smSource.Length; i++) {
-					var index = Array.IndexOf (playlist, numberOfMusic (i));
-					if (index >= 0 && smSource [i].isPlaying && playindex > index) {
-						playindex = index;
+					// 同じプレイリストが再生中なら、現在の曲から開始 (停止処理中の再開に配慮)
+				} else {
+					playlist = value;
+					playindex = int.MaxValue;
+					// 再生中の曲がリストにあればそこから開始
+					for (var i = 0; i < smSource.Length; i++) {
+						var index = Array.IndexOf (playlist, numberOfMusic (i));
+						if (index >= 0 && smSource [i].isPlaying && playindex > index) {
+							playindex = index;
+						}
+					}
+					if (playindex == int.MaxValue) {
+						playindex = 0;
 					}
 				}
-				if (playindex == int.MaxValue) {
-					playindex = 0;
-                }
+				// リストを再生
 				music = playlist [playindex];
 				musicLoop = false;
 
