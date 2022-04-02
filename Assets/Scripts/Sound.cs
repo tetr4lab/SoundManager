@@ -329,53 +329,67 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>楽曲音が再生中</summary>
+		/// <summary>楽曲音が再生中 (フェードイン中と再生待機中を含むがフェードアウト中は含まない)</summary>
 		protected virtual bool isPlayingMusic {
 			get {
 				for (var i = 0; i < smSource.Length; i++) {
-					if ((smSource [i].isPlaying && (smState [i] == musicStatus.FADEIN || smState [i] == musicStatus.PLAYING)) || smState [i] == musicStatus.WAIT_INTERVAL) {
+					if ((smSource [i].isPlaying && smState [i] != musicStatus.FADEOUT) || smState [i] == musicStatus.WAIT_INTERVAL) {
 						return true;
-                    }
+					}
 				}
 				return false;
 			}
-        }
+		}
 
-		/// <summary>再生中の全楽曲音</summary>
-		protected virtual int [] musics => Array.ConvertAll (Array.FindAll (smSource, s => s.isPlaying), e => Array.IndexOf (soundMusicClip, e.clip));
+		/// <summary>再生中の全楽曲音 (フェードイン/アウト中と再生待機中を含む)</summary>
+		protected virtual int [] musics {
+			get {
+				var found = new List<int> { };
+				for (var i = 0; i < smSource.Length; i++) {
+					if (smSource [i].isPlaying || smState [i] == musicStatus.WAIT_INTERVAL) {
+						found.Add (Array.IndexOf (soundMusicClip, smSource [i].clip));
+                    }
+                }
+				return found.ToArray ();
+			}
+		}
 
 		/// <summary>楽曲音の設定</summary>
 		protected virtual int music {
-			get => Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
+			get => (smState [smPlayChannel] == musicStatus.STOP) ? Silent : Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
 			set {
 				var smsc = smSubChannel;
 				if (value < 0 || value >= soundMusicClip.Length) {
-					// 表をフェードアウトして、裏を停止
-					smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
-					smState [smsc] = musicStatus.STOP;
+					// 範囲外なら、表裏とも停止
+					smStop (smPlayChannel);
+					smStop (smsc);
+				} else if (smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].clip == soundMusicClip [value]) {
+					// 再生中の表と一致したら、表を再生して、裏を停止
+					smState [smPlayChannel] = musicStatus.FADEIN;
+					smStop (smsc);
+				} else if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) {
+					// 再生中の裏と一致したら、表を停止して、裏を開始、表裏入れ替え
+					smStop (smPlayChannel);
+					smState [smsc] = musicStatus.FADEIN;
+					smPlayChannel = smsc;
 				} else {
-					if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) {
-						// 再生中の裏と一致したら、表を停止して、裏を開始、表裏入れ替え
-						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
-						smState [smsc] = musicStatus.FADEIN;
+					// どちらとも一致しないなら、表をフェードアウトして、裏を即時停止、裏に曲をセットして開始、表裏入れ替え
+					if (smSource [smsc].isPlaying && smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].volume < smSource [smsc].volume) {
+						// 裏の方がやかましいなら、先に表裏入れ替え
 						smPlayChannel = smsc;
-					} else if (!smSource [smPlayChannel].isPlaying || smSource [smPlayChannel].clip != soundMusicClip [value]) {
-						// どちらとも一致しない
-						if (smSource [smsc].isPlaying && smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].volume < smSource [smsc].volume) {
-							// 裏の方がやかましいなら、表裏入れ替え
-							smPlayChannel = smsc;
-							smsc = smSubChannel;
-						}
-						// 表をフェードアウトして、裏を即時停止、裏に曲セットして開始、表裏入れ替え
-						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
-						smLastState [smsc] = musicStatus.STOP;
-						smSource [smsc].Stop ();
-						smSource [smsc].volume = MinimumVolume;
-						smSource [smsc].clip = soundMusicClip [value];
-						smState [smsc] = musicStatus.WAIT_INTERVAL;
-						smPlayChannel = smsc;
+						smsc = smSubChannel;
 					}
+					smStop (smPlayChannel);
+					smLastState [smsc] = musicStatus.STOP;
+					smSource [smsc].Stop ();
+					smSource [smsc].volume = MinimumVolume;
+					smSource [smsc].clip = soundMusicClip [value];
+					smState [smsc] = musicStatus.WAIT_INTERVAL;
+					smPlayChannel = smsc;
 				}
+			
+				// 再生中ならフェードアウト
+				void smStop (int channel) => smState [channel] = smSource [channel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
 			}
 		}
 

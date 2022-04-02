@@ -51,7 +51,7 @@ public class SampleMain : MonoBehaviour {
 				effectPanels [i].color = activeEffectColor;
             }
         }
-		for (var i = 0; i < musicPanels.Length; i++) {
+		for (var i = 0; i < musicPanels.Length - 1; i++) {
 			musicPanels [i].color = Color.white;
         }
 		foreach (var i in Sound.Musics) {
@@ -59,6 +59,8 @@ public class SampleMain : MonoBehaviour {
 				musicPanels [i].color = activeMusicColor;
 			}
 		}
+		// プレイリスト再生中ならパネルに着色
+		musicPanels [musicPanels.Length - 1].color = (Sound.Playlist != null) ? activeMusicColor : Color.white;
 	}
 
 	/// <summary>効果音ボタン 重複再生</summary>
