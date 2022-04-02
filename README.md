@@ -88,6 +88,11 @@ int [] numbers = Sound.Effects;
 
 - 何も再生されていない場合は、空の配列が得られます。
 
+#### 効果音が再生中か検査する
+```cs:
+if (Sound.IsPlayingEffect) {
+```
+
 #### 指定したSEを止める
 ```cs:
 Sound.EffectStop = number;
@@ -155,6 +160,13 @@ int [] numbers = Sound.Musics;
 ```
 
 - クロスフェード中であれば要素2個、通常の再生中であれば要素1個、何も再生されていない場合は空の配列が得られます。
+
+#### BGMが再生中か検査する
+```cs:
+if (Sound.IsPlayingMusic) {
+```
+
+- 再生待機中も再生中と見なされます。逆に、フェードアウト中は再生中でないものと見なされます。
 
 #### BGMプレイリストを再生する
 ```cs:

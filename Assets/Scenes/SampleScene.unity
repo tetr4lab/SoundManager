@@ -1155,6 +1155,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 343693587}
   m_CullTransparentMesh: 0
+--- !u!114 &355846450 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3216262659930508968, guid: 242eae3fdb4941f44b01ce57ac216833,
+    type: 3}
+  m_PrefabInstance: {fileID: 237710308}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &371598672
 GameObject:
   m_ObjectHideFlags: 0
@@ -1992,6 +2004,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
+--- !u!114 &715968554 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3216262659930508968, guid: 242eae3fdb4941f44b01ce57ac216833,
+    type: 3}
+  m_PrefabInstance: {fileID: 1659845527}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &759874126
 GameObject:
   m_ObjectHideFlags: 0
@@ -5557,7 +5581,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a4150085896de04683c3c04df76a20d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  effectPanals:
+  effectStopButton: {fileID: 715968554}
+  musicStopButton: {fileID: 355846450}
+  effectPanels:
   - {fileID: 1303760879}
   - {fileID: 412026360}
   - {fileID: 1408894572}

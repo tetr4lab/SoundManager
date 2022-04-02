@@ -8,8 +8,11 @@ using SoundManager;
 public class SampleMain : MonoBehaviour {
 
 	// オブジェクト要素
+	// 停止ボタン
+	[SerializeField] private Button effectStopButton = default;
+	[SerializeField] private Button musicStopButton = default;
 	// 効果音パネル
-	[SerializeField] private Image [] effectPanals = default;
+	[SerializeField] private Image [] effectPanels = default;
 	// 曲パネル
 	[SerializeField] private Image [] musicPanels = default;
 	// 音量スライダー
@@ -36,13 +39,16 @@ public class SampleMain : MonoBehaviour {
 
 	/// <summary>駆動</summary>
     private void Update () {
+		// 再生していないなら停止ボタンを操作不能に
+		effectStopButton.interactable = Sound.IsPlayingEffect;
+		musicStopButton.interactable = Sound.IsPlayingMusic;
 		// 再生中のパネルに着色
-        for (var i = 0; i < effectPanals.Length; i++) {
-			effectPanals [i].color = Color.white;
+		for (var i = 0; i < effectPanels.Length; i++) {
+			effectPanels [i].color = Color.white;
 		}
 		foreach (var i in Sound.Effects) {
-			if (i < effectPanals.Length) {
-				effectPanals [i].color = activeEffectColor;
+			if (i < effectPanels.Length) {
+				effectPanels [i].color = activeEffectColor;
             }
         }
 		for (var i = 0; i < musicPanels.Length; i++) {

@@ -161,6 +161,7 @@ namespace SoundManager {
 			if (!inited || sound != this) { return; }
 			for (var i = 0; i < smSource.Length; i++) {
 				if (smLastState [i] != smState [i]) {
+					// 状態の切り替え
 					switch (smState [i]) {
 						case musicStatus.STOP:
 							smRemainTime [i] = 0f;
@@ -194,7 +195,8 @@ namespace SoundManager {
 					}
 					smLastState [i] = smState [i];
 				} else {
-					smRemainTime [i] -= Time.deltaTime; // 経過時間セット
+					// 状態の継続時間を記録
+					smRemainTime [i] -= Time.deltaTime;
 					switch (smState [i]) {
 						case musicStatus.WAIT_INTERVAL:
 							if (smRemainTime [i] <= 0f) {
@@ -225,6 +227,18 @@ namespace SoundManager {
 			}
 		}
 
+		/// <summary>効果音が再生中</summary>
+		protected virtual bool isPlayingEffect {
+			get {
+				for (var i = 0; i < seSource.Length; i++) {
+					if (seSource [i].isPlaying) {
+						return true;
+					}
+				}
+				return false;
+			}
+		}
+
 		/// <summary>再生中の全効果音</summary>
 		protected virtual int [] effects => Array.ConvertAll (Array.FindAll (seSource, s => s.isPlaying), e => Array.IndexOf (soundEffectClip, e.clip));
 
@@ -234,7 +248,8 @@ namespace SoundManager {
 				var index = Silent;
 				var time = DateTime.MinValue;
 				for (var i = 0; i < seSource.Length; i++) {
-					if (seSource [i].isPlaying && sePlayTime [i] > time) { // 新しい方
+					if (seSource [i].isPlaying && sePlayTime [i] > time) {
+						// 新しい方
 						time = sePlayTime [i];
 						index = Array.IndexOf (soundEffectClip, seSource [i].clip);
 					}
@@ -250,10 +265,12 @@ namespace SoundManager {
 					var index = 0;
 					DateTime time = DateTime.MaxValue;
 					for (var i = 0; i < seSource.Length; i++) {
-						if (!seSource [i].isPlaying) { // 再生していない
+						if (!seSource [i].isPlaying) {
+							// 再生していない
 							index = i;
 							break;
-						} else if (sePlayTime [i] < time) { // 古い方
+						} else if (sePlayTime [i] < time) {
+							// 古い方
 							time = sePlayTime [i];
 							index = i;
 						}
@@ -274,7 +291,8 @@ namespace SoundManager {
 				var time = DateTime.MaxValue;
 				for (var i = 0; i < seSource.Length; i++) {
 					if (seSource [i].isPlaying && seSource [i].clip == soundEffectClip [number]) {
-						if (sePlayTime [i] < time) { // 古い方
+						if (sePlayTime [i] < time) {
+							// 古い方
 							time = sePlayTime [i];
 							index = i;
 						}
@@ -311,17 +329,53 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>音量の大きい楽曲チャネル</summary>
-		protected int smLouderChannel {
+		/// <summary>楽曲音が再生中</summary>
+		protected virtual bool isPlayingMusic {
 			get {
-				var smsc = smSubChannel;
-				if (smSource [smsc].isPlaying) {
-					if (smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].volume >= smSource [smsc].volume) {
-						return smPlayChannel;
-					}
-					return smsc;
+				for (var i = 0; i < smSource.Length; i++) {
+					if ((smSource [i].isPlaying && (smState [i] == musicStatus.FADEIN || smState [i] == musicStatus.PLAYING)) || smState [i] == musicStatus.WAIT_INTERVAL) {
+						return true;
+                    }
 				}
-				return smPlayChannel;
+				return false;
+			}
+        }
+
+		/// <summary>再生中の全楽曲音</summary>
+		protected virtual int [] musics => Array.ConvertAll (Array.FindAll (smSource, s => s.isPlaying), e => Array.IndexOf (soundMusicClip, e.clip));
+
+		/// <summary>楽曲音の設定</summary>
+		protected virtual int music {
+			get => Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
+			set {
+				var smsc = smSubChannel;
+				if (value < 0 || value >= soundMusicClip.Length) {
+					// 表をフェードアウトして、裏を停止
+					smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
+					smState [smsc] = musicStatus.STOP;
+				} else {
+					if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) {
+						// 再生中の裏と一致したら、表を停止して、裏を開始、表裏入れ替え
+						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
+						smState [smsc] = musicStatus.FADEIN;
+						smPlayChannel = smsc;
+					} else if (!smSource [smPlayChannel].isPlaying || smSource [smPlayChannel].clip != soundMusicClip [value]) {
+						// どちらとも一致しない
+						if (smSource [smsc].isPlaying && smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].volume < smSource [smsc].volume) {
+							// 裏の方がやかましいなら、表裏入れ替え
+							smPlayChannel = smsc;
+							smsc = smSubChannel;
+						}
+						// 表をフェードアウトして、裏を即時停止、裏に曲セットして開始、表裏入れ替え
+						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
+						smLastState [smsc] = musicStatus.STOP;
+						smSource [smsc].Stop ();
+						smSource [smsc].volume = MinimumVolume;
+						smSource [smsc].clip = soundMusicClip [value];
+						smState [smsc] = musicStatus.WAIT_INTERVAL;
+						smPlayChannel = smsc;
+					}
+				}
 			}
 		}
 
@@ -331,37 +385,6 @@ namespace SoundManager {
 			set {
 				for (var i = 0; i < smSource.Length; i++) {
 					smSource [i].loop = value;
-				}
-			}
-		}
-
-		/// <summary>再生中の全楽曲音</summary>
-		protected virtual int [] musics => Array.ConvertAll (Array.FindAll (smSource, s => s.isPlaying), e => Array.IndexOf (soundMusicClip, e.clip));
-
-		/// <summary>楽曲音の設定</summary>
-		protected virtual int music {
-			get => Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
-			set {
-				var smsc = smSubChannel; // 裏チャネル
-				if (value < 0 || value >= soundMusicClip.Length) {
-					smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP; // 表をフェードアウト
-					smState [smsc] = musicStatus.STOP; // 裏を停止
-				} else {
-					if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) { // 再生中の裏と一致
-						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP; // 表を停止
-						smState [smsc] = musicStatus.FADEIN; // 裏を開始
-						smPlayChannel = smsc; // 表裏入れ替え
-					} else if (!smSource [smPlayChannel].isPlaying || smSource [smPlayChannel].clip != soundMusicClip [value]) { // どちらとも一致しない
-						smPlayChannel = smLouderChannel; // やかましい方を表に
-						smsc = smSubChannel; // 裏チャネル再算定
-						smState [smPlayChannel] = smSource [smPlayChannel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP; // 表をフェードアウト
-						smLastState [smsc] = musicStatus.STOP; // 裏を即時停止
-						smSource [smsc].Stop ();
-						smSource [smsc].volume = MinimumVolume;
-						smSource [smsc].clip = soundMusicClip [value]; // 裏に曲セット
-						smState [smsc] = musicStatus.WAIT_INTERVAL; // 裏を開始
-						smPlayChannel = smsc; // 表裏入れ替え
-					}
 				}
 			}
 		}
@@ -378,7 +401,7 @@ namespace SoundManager {
 					playlist = null;
 					musicLoop = true;
 					return;
-				} else if (playingSamelist (playlist, value)) {
+				} else if (isPlayingMusic && playingSamelist (playlist, value)) {
 					// 同じプレイリストが再生中なら何もしない
 					return;
                 }
@@ -411,16 +434,13 @@ namespace SoundManager {
 				if (value >= MinimumVolume && value <= MaximumVolume) {
 					smVolume = value;
 				}
-				if (smState [0] != musicStatus.STOP) {
-					smSource [0].volume = smCoefficient * smVolume;
-					if (smVolume <= MinimumVolume) {
-						smState [0] = musicStatus.STOP; // 即時停止
-					}
-				}
-				if (smState [1] != musicStatus.STOP) {
-					smSource [1].volume = smCoefficient * smVolume;
-					if (smVolume <= MinimumVolume) {
-						smState [1] = musicStatus.STOP; // 即時停止
+				for (var i = 0; i < smSource.Length; i++) {
+					if (smState [i] != musicStatus.STOP) {
+						smSource [i].volume = smCoefficient * smVolume;
+						if (smVolume <= MinimumVolume) {
+							// 音量設定ゼロなら停止
+							smState [i] = musicStatus.STOP;
+						}
 					}
 				}
 			}
@@ -433,6 +453,7 @@ namespace SoundManager {
 				if (value >= MinimumVolume && value <= MaximumVolume) {
 					smCoefficient = value;
 				}
+				// 音量を再設定
 				musicVolume = musicVolume;
 			}
 		}
@@ -486,8 +507,8 @@ namespace SoundManager {
 		/// <summary>登録されている効果音数</summary>
 		public static int EffectCount => sound?.soundEffectClip?.Length ?? 0;
 
-		/// <summary>登録されている楽曲音数</summary>
-		public static int MusicCount => sound?.soundMusicClip?.Length ?? 0;
+		/// <summary>効果音が再生中</summary>
+		public static bool IsPlayingEffect => sound?.isPlayingEffect ?? false;
 
 		/// <summary>再生中の全効果音</summary>
 		public static int [] Effects => sound?.effects;
@@ -539,6 +560,12 @@ namespace SoundManager {
 				}
 			}
 		}
+
+		/// <summary>登録されている楽曲音数</summary>
+		public static int MusicCount => sound?.soundMusicClip?.Length ?? 0;
+
+		/// <summary>楽曲音が再生中</summary>
+		public static bool IsPlayingMusic => sound?.isPlayingMusic ?? false;
 
 		/// <summary>再生中の全楽曲音</summary>
 		public static int [] Musics => sound?.musics;
