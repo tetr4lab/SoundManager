@@ -104,6 +104,8 @@ namespace SoundManager {
 		protected virtual int smSubChannel => musicSubChannel (smPlayChannel);
 		/// <summary>楽曲サブチャネル</summary>
 		protected virtual int musicSubChannel (int mainChannel) => (mainChannel == 0) ? 1 : 0;
+		/// <summary>楽曲発声体の曲番号</summary>
+		protected virtual int numberOfMusic (int channel) => Array.IndexOf (soundMusicClip, smSource [channel].clip);
 
 		/// <summary>起動</summary>
 		protected virtual void Awake () => Add (this);
@@ -347,7 +349,7 @@ namespace SoundManager {
 				var found = new List<int> { };
 				for (var i = 0; i < smSource.Length; i++) {
 					if (smSource [i].isPlaying || smState [i] == MusicStatus.WAIT_INTERVAL) {
-						found.Add (Array.IndexOf (soundMusicClip, smSource [i].clip));
+						found.Add (numberOfMusic (i));
                     }
                 }
 				return found.ToArray ();
@@ -356,7 +358,7 @@ namespace SoundManager {
 
 		/// <summary>楽曲音の設定</summary>
 		protected virtual int music {
-			get => (smState [smPlayChannel] == MusicStatus.STOP) ? Silent : Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
+			get => (smState [smPlayChannel] == MusicStatus.STOP) ? Silent : numberOfMusic (smPlayChannel);
 			set {
 				var smsc = smSubChannel;
 				if (value < 0 || value >= soundMusicClip.Length) {
@@ -419,8 +421,19 @@ namespace SoundManager {
 					// 同じプレイリストが再生中なら何もしない
 					return;
                 }
-				// リストを設定して最初の曲を再生
-				music = (playlist = value) [playindex = 0];
+				playlist = value;
+				playindex = int.MaxValue;
+				// 再生中の曲がリストにあればそこから開始
+				for (var i = 0; i < smSource.Length; i++) {
+					var index = Array.IndexOf (playlist, numberOfMusic (i));
+					if (index >= 0 && smSource [i].isPlaying && playindex > index) {
+						playindex = index;
+					}
+				}
+				if (playindex == int.MaxValue) {
+					playindex = 0;
+                }
+				music = playlist [playindex];
 				musicLoop = false;
 
 				// プレイリストの比較
