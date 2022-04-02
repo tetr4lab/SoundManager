@@ -85,9 +85,9 @@ namespace SoundManager {
 		/// <summary>楽曲音発声体</summary>
 		protected AudioSource [] smSource;
 		/// <summary>楽曲音再生状態</summary>
-		protected musicStatus [] smState;
+		protected MusicStatus [] smState;
 		/// <summary>直前の楽曲音再生状態</summary>
-		protected musicStatus [] smLastState;
+		protected MusicStatus [] smLastState;
 		/// <summary>楽曲音状態残存時間</summary>
 		protected float [] smRemainTime;
 		/// <summary>楽曲音発声チャネル</summary>
@@ -136,14 +136,14 @@ namespace SoundManager {
 				smSource [i].playOnAwake = false;
 				smSource [i].loop = true;
 			}
-			smState = new musicStatus [soundMusicMax];
-			smLastState = new musicStatus [soundMusicMax];
+			smState = new MusicStatus [soundMusicMax];
+			smLastState = new MusicStatus [soundMusicMax];
 			smRemainTime = new float [soundMusicMax];
 			smPlayChannel = 1;
 		}
 
 		/// <summary>楽曲音再生状態</summary>
-		protected enum musicStatus {
+		protected enum MusicStatus {
 			/// <summary>停止</summary>
 			STOP = 0,
 			/// <summary>再生中</summary>
@@ -163,30 +163,30 @@ namespace SoundManager {
 				if (smLastState [i] != smState [i]) {
 					// 状態の切り替え
 					switch (smState [i]) {
-						case musicStatus.STOP:
+						case MusicStatus.STOP:
 							smRemainTime [i] = 0f;
 							smSource [i].volume = MinimumVolume;
 							smSource [i].Stop ();
 							break;
-						case musicStatus.PLAYING:
+						case MusicStatus.PLAYING:
 							smRemainTime [i] = 0f;
 							smSource [i].volume = smCoefficient * smVolume;
-							if (smLastState [i] != musicStatus.FADEIN) {
+							if (smLastState [i] != MusicStatus.FADEIN) {
 								smSource [i].Play ();
 							}
 							break;
-						case musicStatus.WAIT_INTERVAL:
-							smRemainTime [i] = ((smState [musicSubChannel (i)] == musicStatus.FADEOUT) ? soundMusicFadeOutTime : 0) + soundMusicIntervalTime;
+						case MusicStatus.WAIT_INTERVAL:
+							smRemainTime [i] = ((smState [musicSubChannel (i)] == MusicStatus.FADEOUT) ? soundMusicFadeOutTime : 0) + soundMusicIntervalTime;
 							smSource [i].volume = MinimumVolume;
 							break;
-						case musicStatus.FADEIN:
+						case MusicStatus.FADEIN:
 							smRemainTime [i] = soundMusicFadeInTime * (MusicVolume - smSource [i].volume) / MusicVolume;
 							if (!smSource [i].isPlaying) {
 								smSource [i].Play ();
 							}
 							break;
-						case musicStatus.FADEOUT:
-							if (smLastState [i] == musicStatus.FADEIN) {
+						case MusicStatus.FADEOUT:
+							if (smLastState [i] == MusicStatus.FADEIN) {
 								smRemainTime [i] = soundMusicFadeOutTime * smSource [i].volume / MusicVolume;
 							} else {
 								smRemainTime [i] = soundMusicFadeOutTime;
@@ -198,30 +198,30 @@ namespace SoundManager {
 					// 状態の継続時間を記録
 					smRemainTime [i] -= Time.deltaTime;
 					switch (smState [i]) {
-						case musicStatus.WAIT_INTERVAL:
+						case MusicStatus.WAIT_INTERVAL:
 							if (smRemainTime [i] <= 0f) {
-								smState [i] = musicStatus.FADEIN;
+								smState [i] = MusicStatus.FADEIN;
 							}
 							break;
-						case musicStatus.FADEIN:
+						case MusicStatus.FADEIN:
 							if (smRemainTime [i] >= 0f) {
 								smSource [i].volume = smCoefficient * smVolume * (1f - smRemainTime [i] / soundMusicFadeInTime);
 							} else {
-								smState [i] = musicStatus.PLAYING;
+								smState [i] = MusicStatus.PLAYING;
 							}
 							break;
-						case musicStatus.FADEOUT:
+						case MusicStatus.FADEOUT:
 							if (smRemainTime [i] >= 0f) {
 								smSource [i].volume = smCoefficient * smVolume * smRemainTime [i] / soundMusicFadeOutTime;
 							} else {
-								smState [i] = musicStatus.STOP;
+								smState [i] = MusicStatus.STOP;
 							}
 							break;
 					}
 				}
 			}
 			// プレイリスト
-			if (playlist != null && !smSource [smPlayChannel].loop && smState [smPlayChannel] == musicStatus.PLAYING && !smSource [smPlayChannel].isPlaying) {
+			if (playlist != null && !smSource [smPlayChannel].loop && smState [smPlayChannel] == MusicStatus.PLAYING && !smSource [smPlayChannel].isPlaying) {
 				playindex = (playindex + 1) % playlist.Length;
 				music = playlist [playindex];
 			}
@@ -333,7 +333,7 @@ namespace SoundManager {
 		protected virtual bool isPlayingMusic {
 			get {
 				for (var i = 0; i < smSource.Length; i++) {
-					if ((smSource [i].isPlaying && smState [i] != musicStatus.FADEOUT) || smState [i] == musicStatus.WAIT_INTERVAL) {
+					if ((smSource [i].isPlaying && smState [i] != MusicStatus.FADEOUT) || smState [i] == MusicStatus.WAIT_INTERVAL) {
 						return true;
 					}
 				}
@@ -346,7 +346,7 @@ namespace SoundManager {
 			get {
 				var found = new List<int> { };
 				for (var i = 0; i < smSource.Length; i++) {
-					if (smSource [i].isPlaying || smState [i] == musicStatus.WAIT_INTERVAL) {
+					if (smSource [i].isPlaying || smState [i] == MusicStatus.WAIT_INTERVAL) {
 						found.Add (Array.IndexOf (soundMusicClip, smSource [i].clip));
                     }
                 }
@@ -356,7 +356,7 @@ namespace SoundManager {
 
 		/// <summary>楽曲音の設定</summary>
 		protected virtual int music {
-			get => (smState [smPlayChannel] == musicStatus.STOP) ? Silent : Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
+			get => (smState [smPlayChannel] == MusicStatus.STOP) ? Silent : Array.IndexOf (soundMusicClip, smSource [smPlayChannel].clip);
 			set {
 				var smsc = smSubChannel;
 				if (value < 0 || value >= soundMusicClip.Length) {
@@ -365,12 +365,12 @@ namespace SoundManager {
 					smStop (smsc);
 				} else if (smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].clip == soundMusicClip [value]) {
 					// 再生中の表と一致したら、表を再生して、裏を停止
-					smState [smPlayChannel] = musicStatus.FADEIN;
+					smState [smPlayChannel] = MusicStatus.FADEIN;
 					smStop (smsc);
 				} else if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) {
 					// 再生中の裏と一致したら、表を停止して、裏を開始、表裏入れ替え
 					smStop (smPlayChannel);
-					smState [smsc] = musicStatus.FADEIN;
+					smState [smsc] = MusicStatus.FADEIN;
 					smPlayChannel = smsc;
 				} else {
 					// どちらとも一致しないなら、表をフェードアウトして、裏を即時停止、裏に曲をセットして開始、表裏入れ替え
@@ -380,16 +380,16 @@ namespace SoundManager {
 						smsc = smSubChannel;
 					}
 					smStop (smPlayChannel);
-					smLastState [smsc] = musicStatus.STOP;
+					smLastState [smsc] = MusicStatus.STOP;
 					smSource [smsc].Stop ();
 					smSource [smsc].volume = MinimumVolume;
 					smSource [smsc].clip = soundMusicClip [value];
-					smState [smsc] = musicStatus.WAIT_INTERVAL;
+					smState [smsc] = MusicStatus.WAIT_INTERVAL;
 					smPlayChannel = smsc;
 				}
 			
 				// 再生中ならフェードアウト
-				void smStop (int channel) => smState [channel] = smSource [channel].isPlaying ? musicStatus.FADEOUT : musicStatus.STOP;
+				void smStop (int channel) => smState [channel] = smSource [channel].isPlaying ? MusicStatus.FADEOUT : MusicStatus.STOP;
 			}
 		}
 
@@ -449,11 +449,11 @@ namespace SoundManager {
 					smVolume = value;
 				}
 				for (var i = 0; i < smSource.Length; i++) {
-					if (smState [i] != musicStatus.STOP) {
+					if (smState [i] != MusicStatus.STOP) {
 						smSource [i].volume = smCoefficient * smVolume;
 						if (smVolume <= MinimumVolume) {
 							// 音量設定ゼロなら停止
-							smState [i] = musicStatus.STOP;
+							smState [i] = MusicStatus.STOP;
 						}
 					}
 				}
