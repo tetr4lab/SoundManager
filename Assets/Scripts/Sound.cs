@@ -61,7 +61,7 @@ namespace SoundManager {
 		/// <summary>楽曲音フェードイン時間</summary>
 		protected const float SoundMusicFadeInTime = 0f;
 		/// <summary>楽曲音フェードアウト時間</summary>
-		protected const float SoundMusicFadeOutTime = 3f;
+		protected const float SoundMusicFadeOutTime = 0f;
 		/// <summary>楽曲音インターバル時間</summary>
 		protected const float SoundMusicIntervalTime = 0f;
 		/// <summary>楽曲音同時再生数</summary>
@@ -212,6 +212,13 @@ namespace SoundManager {
 								smState [i] = MusicStatus.PLAYING;
 							}
 							break;
+						case MusicStatus.PLAYING:
+							// プレイリスト
+							if (playlist != null && !smSource [i].loop && smSource [i].time >= smSource [i].clip.length - soundMusicFadeOutTime) {
+								playindex = (playindex + 1) % playlist.Length;
+								music = playlist [playindex];
+							}
+							break;
 						case MusicStatus.FADEOUT:
 							if (smRemainTime [i] >= 0f) {
 								smSource [i].volume = smCoefficient * smVolume * smRemainTime [i] / soundMusicFadeOutTime;
@@ -221,11 +228,6 @@ namespace SoundManager {
 							break;
 					}
 				}
-			}
-			// プレイリスト
-			if (playlist != null && !smSource [smPlayChannel].loop && smState [smPlayChannel] == MusicStatus.PLAYING && !smSource [smPlayChannel].isPlaying) {
-				playindex = (playindex + 1) % playlist.Length;
-				music = playlist [playindex];
 			}
 		}
 
@@ -335,7 +337,7 @@ namespace SoundManager {
 		protected virtual bool isPlayingMusic {
 			get {
 				for (var i = 0; i < smSource.Length; i++) {
-					if (smSource [i].isPlaying || smState [i] == MusicStatus.WAIT_INTERVAL) {
+					if (smState [i] != MusicStatus.STOP) {
 						return true;
 					}
 				}
@@ -348,7 +350,7 @@ namespace SoundManager {
 			get {
 				var found = new List<int> { };
 				for (var i = 0; i < smSource.Length; i++) {
-					if (smSource [i].isPlaying || smState [i] == MusicStatus.WAIT_INTERVAL) {
+					if (smState [i] != MusicStatus.STOP) {
 						found.Add (numberOfMusic (i));
                     }
                 }

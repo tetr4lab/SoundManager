@@ -3459,9 +3459,9 @@ MonoBehaviour:
   soundEffectMax: 5
   soundEffectInitialVolume: 0.5
   soundMusicInitialVolume: 0.2
-  soundMusicFadeInTime: 1
-  soundMusicFadeOutTime: 4
-  soundMusicIntervalTime: -4
+  soundMusicFadeInTime: 5
+  soundMusicFadeOutTime: 10
+  soundMusicIntervalTime: -10
   soundEffectClip:
   - {fileID: 8300000, guid: 5fc688ef001acc040a79d4415595117c, type: 3}
   - {fileID: 8300000, guid: cfef5de45523ab545bb0300081287556, type: 3}
