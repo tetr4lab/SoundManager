@@ -34,7 +34,7 @@ public class SampleMain : MonoBehaviour {
 		soundMuteToggle.isOn = Sound.Mute;
 		OnPressSEButton (SE.Started); // 起動しました。
 		OnPressSEButton (SE.Thunderstorm1); // 雷雨
-		OnPressSMButton (-2);
+		OnPressListButton (0);
 	}
 
 	/// <summary>駆動</summary>
@@ -95,12 +95,24 @@ public class SampleMain : MonoBehaviour {
 
 	/// <summary>楽曲音ボタン 切り替え</summary>
 	public void OnPressSMButton (int number) {
-		if (number == -2) {
+		Debug.Log ($"Play Music {number}");
+		Sound.Music = number; // -1なら停止
+	}
+
+	/// <summary>プレイリストボタン</summary>
+	public void OnPressListButton (int number) {
+		if (number == 0) {
 			Debug.Log ($"Play Music List");
 			Sound.Playlist = new [] { BGM.Neorock83, BGM.Fantasy01, BGM.Orchestra16, BGM.Fantasy15, };
+		} else if (number == int.MinValue) {
+			Debug.Log ($"Play Music List Stop");
+			Sound.Playlist = null;
+		} else if (number > 0) {
+			Debug.Log ($"Play Music List Next");
+			Sound.MusicPlayNext (number);
 		} else {
-			Debug.Log ($"Play Music {number}");
-			Sound.Music = number; // -1なら停止
+			Debug.Log ($"Play Music List Prev");
+			Sound.MusicPlayNext (number);
 		}
 	}
 

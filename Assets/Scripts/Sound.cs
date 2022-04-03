@@ -457,6 +457,21 @@ namespace SoundManager {
 			}
 		}
 
+		/// <summary>プレイリストの曲送り</summary>
+		/// <param name="step">変位量</param>
+		/// <returns>再生中のインデックス</returns>
+		protected virtual int musicPlayNext (int step = 1) {
+			if (playlist != null && !smSource [smPlayChannel].loop) {
+				if (step < 0) {
+					step += (-step / playlist.Length + 1) * playlist.Length;
+				}
+				playindex = (playindex + step) % playlist.Length;
+				music = playlist [playindex];
+				return playindex;
+			}
+			return Silent;
+		}
+
 		/// <summary>楽曲音の音量</summary>
 		protected virtual float musicVolume {
 			get => smVolume;
@@ -620,6 +635,11 @@ namespace SoundManager {
 				}
 			}
 		}
+
+		/// <summary>プレイリストの曲送り</summary>
+		/// <param name="step">変位量</param>
+		/// <returns>再生中のインデックス</returns>
+		public static int MusicPlayNext (int step = 1) => sound?.musicPlayNext (step) ?? Silent;
 
 		/// <summary>楽曲音の音量</summary>
 		public static float MusicVolume {

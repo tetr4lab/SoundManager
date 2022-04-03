@@ -187,6 +187,21 @@ int [] playlist = Sound.Playlist;
 - 再生中の曲番号を得る場合は、`Sound.Music`を参照します。
   - 再生中のインデックスを得ることはできません。
 
+#### BGMプレイリストの曲を送る
+```cs:
+Sound.MusicPlayNext ();
+```
+
+#### BGMプレイリストの曲を戻す
+```cs:
+Sound.MusicPlayNext (-1);
+```
+
+#### 再生中のBGMプレイリストのインデックスを得る
+```cs:
+int index = Sound.MusicPlayNext (0);
+```
+
 #### BGM音量を設定する
 ```cs:
 Sound.MusicVolume = 0.5f;
