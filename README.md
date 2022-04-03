@@ -27,7 +27,12 @@ tags: Unity C# uGUI
 - 全体の一時的なミュートが可能です。
 
 ## 導入と設定
-- プロジェクトにアセットをインポートしてください。
+### サンプル・プロジェクト
+- プロジェクトをUnityエディタで開くだけです。
+- 設定を変更する際は、次項を参照してください。
+
+### 任意のプロジェクト
+- プロジェクトに`Sound.cs`をインポートしてください。
 - シーンの適当なオブジェクトに、スクリプト`Sound.cs`をアタッチしてください。
 - インスペクタで、`Sound Effect Clip`と`Sound Music Clip`のSizeを必要なだけ増やし、オーディオクリップを設定してください。
 - 必要に応じてパラメータを調整してください。
@@ -46,6 +51,13 @@ tags: Unity C# uGUI
 |Sound Music Clip|BGMオーディオクリップ|-|-
 
 ## 使い方
+- 使用するスクリプトの冒頭で以下を宣言してください。
+  - あるいは、以降で`Sound.~`と書かれている部分を`SoundManager.Sound.~`とすることで、宣言せずとも使用可能です。
+
+```cs:
+Using SoundManager;
+```
+
 ### SEを再生する
 #### 同じSEでも重ねて鳴らす
 ```cs:
@@ -169,39 +181,6 @@ if (Sound.IsPlayingMusic) {
 
 - 再生待機中も再生中と見なされます。
 
-#### BGMプレイリストを再生する
-```cs:
-Sound.Playlist = new int [] { number, number1, number2, number3, };
-```
-
-- 順に再生し全体を繰り返します。
-  - 設定に従って曲間にフェードとインターバルが適用されます。
-- 単一曲の再生中に同一の曲を含むプレイリストを再生した場合は、リストの途中からの開始として曲の再生が継続されます。
-
-#### 再生中のBGMプレイリストを得る
-```cs:
-int [] playlist = Sound.Playlist;
-```
-
-- プレイリストが再生されていない場合は、`null`が得られます。
-- 再生中の曲番号を得る場合は、`Sound.Music`を参照します。
-  - 再生中のインデックスを得ることはできません。
-
-#### BGMプレイリストの曲を送る
-```cs:
-Sound.MusicPlayNext ();
-```
-
-#### BGMプレイリストの曲を戻す
-```cs:
-Sound.MusicPlayNext (-1);
-```
-
-#### 再生中のBGMプレイリストのインデックスを得る
-```cs:
-int index = Sound.MusicPlayNext (0);
-```
-
 #### BGM音量を設定する
 ```cs:
 Sound.MusicVolume = 0.5f;
@@ -234,6 +213,44 @@ Sound.Music = Sound.Silent;
 - フェードアウト時間の設定が`0`でない場合は、フェードアウトします。
 - フェードアウト時間が`0`の場合は即座に止まります。
 
+### BGMプレイリストを再生する
+- プレイリストはBGMの再生の一部で、BGMの音量の設定や再生の停止などによって制御されます。
+- プレイリスト再生中に単曲の再生を開始した場合、プレイリストの再生はキャンセルされます。
+  - その際、単曲で再生開始した曲がプレイリストで再生中の曲だった場合は、そのまま再生が継続し単曲でループします。
+
+#### プレイリストを再生する
+```cs:
+Sound.Playlist = new int [] { number, number1, number2, number3, };
+```
+
+- 順に再生し全体を繰り返します。
+  - 設定に従って曲間にフェードとインターバルが適用されます。
+- 単一曲の再生中に同一の曲を含むプレイリストを再生した場合は、リストの途中からの開始として曲の再生が継続されます。
+
+#### 再生中のプレイリストを得る
+```cs:
+int [] playlist = Sound.Playlist;
+```
+
+- プレイリストが再生されていない場合は、`null`が得られます。
+- 再生中の曲番号を得る場合は、`Sound.Music`を参照します。
+  - 再生中のインデックスを得ることはできません。
+
+#### プレイリストの曲を送る
+```cs:
+Sound.MusicPlayNext ();
+```
+
+#### プレイリストの曲を戻す
+```cs:
+Sound.MusicPlayNext (-1);
+```
+
+#### 再生中のプレイリストのインデックスを得る
+```cs:
+int index = Sound.MusicPlayNext (0);
+```
+
 ### 一時的に全ての音を消す、戻す
 ```cs:
 Sound.Mute = true; // 一時的に音を消す
@@ -243,9 +260,16 @@ Sound.Mute = false; // 音を戻す
 - 音が出ないだけで、既存の再生は継続しますし、新たな再生も有効です。
 
 ### コンポーネントの動的な生成
+- コンポーネントをシーンに最初からアタッチせず、スクリプトから動的にアタッチすることも可能です。
+
+#### 引数に応じて生成
 ```cs:
-Sound.Attach (GameObject gameObject, int effectMax, float effectInitialVolume, float musicInitialVolume, float musicFadeInTime, float musicFadeOutTime, float musicIntervalTime, ICollection<AudioClip> effectClip, ICollection<AudioClip> musicClip); // 引数に応じて生成
-Sound.Attach (GameObject gameObject, Sound origin); // 複製して生成
+Sound.Attach (GameObject gameObject, int effectMax, float effectInitialVolume, float musicInitialVolume, float musicFadeInTime, float musicFadeOutTime, float musicIntervalTime, ICollection<AudioClip> effectClip, ICollection<AudioClip> musicClip);
+```
+
+#### 複製して生成
+```cs:
+Sound.Attach (GameObject gameObject, Sound origin);
 ```
 
 ## 謝辞
