@@ -11,6 +11,7 @@ public class SampleMain : MonoBehaviour {
 	// 停止ボタン
 	[SerializeField] private Button effectStopButton = default;
 	[SerializeField] private Button musicStopButton = default;
+	[SerializeField] private Button playlistStopButton = default;
 	// 効果音パネル
 	[SerializeField] private Image [] effectPanels = default;
 	// 曲パネル
@@ -24,24 +25,34 @@ public class SampleMain : MonoBehaviour {
 	// 再生中パネル色
 	[SerializeField] private Color activeEffectColor = Color.white;
 	[SerializeField] private Color activeMusicColor = Color.white;
+	[SerializeField] private Color fadeMusicColor = Color.white;
+	// インスタンスのコンテナ
+	[SerializeField] private GameObject soundContainer = default;
 
 	/// <summary>初期化</summary>
 	private void Start () {
 		Debug.Log ("Start");
-		effectVolumeSlider.normalizedValue = Sound.EffectVolume;
-		musicVolumeSlider.normalizedValue = Sound.MusicVolume;
-		musicTempVolumeSlider.normalizedValue = Sound.MusicTmpVolume;
-		soundMuteToggle.isOn = Sound.Mute;
+		Init ();
 		OnPressSEButton (SE.Started); // 起動しました。
 		OnPressSEButton (SE.Thunderstorm1); // 雷雨
 		OnPressListButton (0);
 	}
 
+	/// <summary>コンソール初期化</summary>
+    private void Init () {
+		effectVolumeSlider.normalizedValue = Sound.EffectVolume;
+		musicVolumeSlider.normalizedValue = Sound.MusicVolume;
+		musicTempVolumeSlider.normalizedValue = Sound.MusicTmpVolume;
+		soundMuteToggle.isOn = Sound.Mute;
+	}
+
 	/// <summary>駆動</summary>
-    private void Update () {
+	private void Update () {
+		if (!Sound.IsValid) { return; }
 		// 再生していないなら停止ボタンを操作不能に
 		effectStopButton.interactable = Sound.IsPlayingEffect;
 		musicStopButton.interactable = Sound.IsPlayingMusic;
+		playlistStopButton.interactable = Sound.Playlist != null && Sound.Playlist.Length > 0;
 		// 再生中のパネルに着色
 		for (var i = 0; i < effectPanels.Length; i++) {
 			effectPanels [i].color = Color.white;
@@ -56,7 +67,7 @@ public class SampleMain : MonoBehaviour {
         }
 		foreach (var i in Sound.Musics) {
 			if (i < musicPanels.Length) {
-				musicPanels [i].color = activeMusicColor;
+				musicPanels [i].color = (Sound.Music == i) ? activeMusicColor : fadeMusicColor;
 			}
 		}
 		// プレイリスト再生中ならパネルに着色
@@ -133,5 +144,17 @@ public class SampleMain : MonoBehaviour {
 		Debug.Log ($"Mute {soundMuteToggle.isOn}");
 		Sound.Mute = soundMuteToggle.isOn;
 	}
+
+	/// <summary>リセットボタン</summary>
+	public void OnPressResetButton () {
+		if (soundContainer) {
+			var instance = soundContainer.GetComponent<Sound> ();
+			if (instance) {
+				Sound.Attach (soundContainer, instance);
+				Destroy (instance);
+				Init ();
+            }
+		}
+    }
 
 }

@@ -144,6 +144,20 @@ namespace SoundManager {
 			smPlayChannel = 1;
 		}
 
+		/// <summary>破棄</summary>
+		protected virtual void Remove () {
+			if (!inited || sound != this) { return; }
+			inited = false;
+			sound.seVolume = sound.smVolume = MinimumVolume;
+			sound.effect = sound.music = Silent;
+			foreach (var se in seSource) {
+				Destroy (se);
+			}
+			foreach (var sm in smSource) {
+				Destroy (sm);
+			}
+		}
+
 		/// <summary>楽曲音再生状態</summary>
 		protected enum MusicStatus {
 			/// <summary>停止</summary>
@@ -214,7 +228,7 @@ namespace SoundManager {
 							break;
 						case MusicStatus.PLAYING:
 							// プレイリスト
-							if (playlist != null && !smSource [i].loop && smSource [i].time >= smSource [i].clip.length - soundMusicFadeOutTime) {
+							if (playlist != null && smSource [i].time >= smSource [i].clip.length - soundMusicFadeOutTime) {
 								playindex = (playindex + 1) % playlist.Length;
 								music = playlist [playindex];
 							}
@@ -461,7 +475,7 @@ namespace SoundManager {
 		/// <param name="step">変位量</param>
 		/// <returns>再生中のインデックス</returns>
 		protected virtual int musicPlayNext (int step = 1) {
-			if (playlist != null && !smSource [smPlayChannel].loop) {
+			if (playlist != null) {
 				if (step < 0) {
 					step += (-step / playlist.Length + 1) * playlist.Length;
 				}
@@ -520,10 +534,12 @@ namespace SoundManager {
 		// クラス要素
 		#region static
 
+		#region sounds (この外では使わない)
+
 		/// <summary>アクティブインスタンス</summary>
 		protected static Sound sound => sounds.Count > 0 ? sounds [0] : null;
 
-		/// <summary>インスタンスリスト</summary>
+		/// <summary>インスタンスリスト (変化の際は即座に初期化される)</summary>
 		protected static List<Sound> sounds;
 
 		/// <summary>
@@ -543,11 +559,17 @@ namespace SoundManager {
 
 		/// <summary>破棄</summary>
 		protected static void Remove (Sound sound) {
+			Sound.sound?.Remove ();
 			if (sounds.Contains (sound)) {
 				sounds.Remove (sound);
 			}
 			Sound.sound?.Init ();
 		}
+
+        #endregion sounds
+
+        /// <summary>有効</summary>
+        public static bool IsValid => sound;
 
 		/// <summary>登録されている効果音数</summary>
 		public static int EffectCount => sound?.soundEffectClip?.Length ?? 0;
