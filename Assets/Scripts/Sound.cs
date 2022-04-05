@@ -68,6 +68,8 @@ namespace SoundManager {
 		protected const int soundMusicMax = 2;
 		/// <summary>無音</summary>
 		public const int Silent = -1;
+		/// <summary>即時停止</summary>
+		public const int ShutUp = -2;
 		/// <summary>最小音量</summary>
 		protected const float MinimumVolume = 0f;
 		/// <summary>最大音量</summary>
@@ -149,7 +151,7 @@ namespace SoundManager {
 			if (!inited || sound != this) { return; }
 			inited = false;
 			sound.seVolume = sound.smVolume = MinimumVolume;
-			sound.effect = sound.music = Silent;
+			sound.effect = sound.music = ShutUp;
 			foreach (var se in seSource) {
 				Destroy (se);
 			}
@@ -377,17 +379,21 @@ namespace SoundManager {
 			get => (smState [smPlayChannel] == MusicStatus.STOP) ? Silent : numberOfMusic (smPlayChannel);
 			set {
 				var smsc = smSubChannel;
-				if (value < 0 || value >= soundMusicClip.Length) {
-					// 範囲外なら、表裏とも停止
+				if (value == ShutUp) {
+					// 即時停止
 					smStop (smPlayChannel);
 					smStop (smsc);
+				} else if (value < 0 || value >= soundMusicClip.Length) {
+					// 範囲外なら、表裏とも停止
+					smFadeOut (smPlayChannel);
+					smFadeOut (smsc);
 				} else if (smSource [smPlayChannel].isPlaying && smSource [smPlayChannel].clip == soundMusicClip [value]) {
 					// 再生中の表と一致したら、表を再生して、裏を停止
 					smState [smPlayChannel] = MusicStatus.FADEIN;
-					smStop (smsc);
+					smFadeOut (smsc);
 				} else if (smSource [smsc].isPlaying && smSource [smsc].clip == soundMusicClip [value]) {
 					// 再生中の裏と一致したら、表を停止して、裏を開始、表裏入れ替え
-					smStop (smPlayChannel);
+					smFadeOut (smPlayChannel);
 					smState [smsc] = MusicStatus.FADEIN;
 					smPlayChannel = smsc;
 				} else {
@@ -397,7 +403,7 @@ namespace SoundManager {
 						smPlayChannel = smsc;
 						smsc = smSubChannel;
 					}
-					smStop (smPlayChannel);
+					smFadeOut (smPlayChannel);
 					smLastState [smsc] = MusicStatus.STOP;
 					smSource [smsc].Stop ();
 					smSource [smsc].volume = MinimumVolume;
@@ -407,7 +413,14 @@ namespace SoundManager {
 				}
 			
 				// 再生中ならフェードアウト
-				void smStop (int channel) => smState [channel] = smSource [channel].isPlaying ? MusicStatus.FADEOUT : MusicStatus.STOP;
+				void smFadeOut (int channel) => smState [channel] = smSource [channel].isPlaying ? MusicStatus.FADEOUT : MusicStatus.STOP;
+				// 即時停止
+				void smStop (int channel) {
+					smLastState [channel] = smState [channel] = MusicStatus.STOP;
+					smSource [channel].Stop ();
+					smSource [channel].volume = MinimumVolume;
+					smSource [smsc].clip = null;
+				}
 			}
 		}
 
@@ -571,6 +584,19 @@ namespace SoundManager {
         /// <summary>有効</summary>
         public static bool IsValid => sound;
 
+        #region Effect
+
+        /// <summary>効果音クリップ</summary>
+        public static AudioClip [] EffectClip {
+			get => sound?.soundEffectClip;
+			set {
+				if (sound) {
+					sound.effect = ShutUp;
+					sound.soundEffectClip = value;
+                }
+            }
+        }
+
 		/// <summary>登録されている効果音数</summary>
 		public static int EffectCount => sound?.soundEffectClip?.Length ?? 0;
 
@@ -624,6 +650,52 @@ namespace SoundManager {
 			set {
 				if (sound) {
 					sound.effectVolume = value;
+				}
+			}
+		}
+
+        #endregion Effect
+
+        #region Music
+
+        /// <summary>楽曲音フェードイン時間</summary>
+        public static float MusicFadeInTime {
+			get => sound?.soundMusicFadeInTime ?? SoundMusicFadeInTime;
+			set {
+				if (sound) {
+					sound.soundMusicFadeInTime = value;
+				}
+			}
+		}
+
+		/// <summary>楽曲音フェードアウト時間</summary>
+		public static float MusicFadeOutTime {
+			get => sound?.soundMusicFadeOutTime ?? SoundMusicFadeOutTime;
+			set {
+				if (sound) {
+					sound.soundMusicFadeOutTime = value;
+				}
+			}
+		}
+
+		/// <summary>楽曲音インターバル時間</summary>
+		public static float MusicIntervalTime {
+			get => sound?.soundMusicIntervalTime ?? SoundMusicIntervalTime;
+			set {
+				if (sound) {
+					sound.soundMusicIntervalTime = value;
+				}
+			}
+		}
+
+		/// <summary>楽曲音クリップ</summary>
+		public static AudioClip [] MusicClip {
+			get => sound?.soundMusicClip;
+			set {
+				if (sound) {
+					sound.music = ShutUp;
+					sound.playlist = null;
+					sound.soundMusicClip = value;
 				}
 			}
 		}
@@ -683,8 +755,10 @@ namespace SoundManager {
 			}
 		}
 
-		/// <summary>消音</summary>
-		public static bool Mute {
+        #endregion Music
+
+        /// <summary>全体消音</summary>
+        public static bool Mute {
 			get => sound?.mute ?? false;
 			set {
 				if (sound) {

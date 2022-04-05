@@ -147,14 +147,18 @@ public class SampleMain : MonoBehaviour {
 
 	/// <summary>リセットボタン</summary>
 	public void OnPressResetButton () {
-		if (soundContainer) {
-			var instance = soundContainer.GetComponent<Sound> ();
-			if (instance) {
-				Sound.Attach (soundContainer, instance);
-				Destroy (instance);
-				Init ();
+		// コンポーネントの切り替え
+        if (soundContainer) {
+            var instance = soundContainer.GetComponent<Sound> ();
+            if (instance) {
+                Sound.Attach (soundContainer, instance);
+                Destroy (instance);
+                Init ();
             }
-		}
+        }
+		// オーディオクリップの切り替え
+        //Sound.EffectClip = Sound.EffectClip;
+        //Sound.MusicClip = Sound.MusicClip;
     }
 
 }

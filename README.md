@@ -39,16 +39,17 @@ tags: Unity C# uGUI
 
 ![18d361cc-4516-56f0-2839-09e6a6e96ba2](https://user-images.githubusercontent.com/48040768/158546598-c2e6527a-000c-48b4-b05b-f1a4980fc912.png)
 
-|項目|説明|初期値|範囲
-|:---|:---|---:|:--:|
-|Sound Effect Max|SE同時再生数|5|1\~
-|Sound Effect Initial Volume|SE初期音量|0.5|0\~1.0
-|Sound Music Initial Volume|BGM初期音量|0.5|0\~1.0
-|Sound Music Fade In Time|BGMフェードイン時間|0.0|0\~
-|Sound Music Fade Out Time|BGMフェードアウト時間|0.0|0\~
-|Sound Music Interval Time|BGMインターバル時間|0.0|\~
-|Sound Effect Clip|SEオーディオクリップ|-|-
-|Sound Music Clip|BGMオーディオクリップ|-|-
+
+|項目|説明|初期値|範囲|動的変更
+|:---|:---|---:|:--:|:--:|
+|Sound Effect Max|SE同時再生数|5|1\~|不可
+|Sound Effect Initial Volume|SE初期音量|0.5|0\~1.0|不可
+|Sound Music Initial Volume|BGM初期音量|0.5|0\~1.0|不可
+|Sound Music Fade In Time|BGMフェードイン時間|0.0|0\~|`Sound.MusicFadeInTime`
+|Sound Music Fade Out Time|BGMフェードアウト時間|0.0|0\~|`Sound.MusicFadeOutTime`
+|Sound Music Interval Time|BGMインターバル時間|0.0|\~|`Sound.MusicIntervalTime`
+|Sound Effect Clip|SEオーディオクリップ|-|-|`SoundE.EffectClip`
+|Sound Music Clip|BGMオーディオクリップ|-|-|`Sound.MusicClip`
 
 ## 使い方
 - 使用するスクリプトの冒頭で以下を宣言してください。
@@ -213,6 +214,13 @@ Sound.Music = Sound.Silent;
 - フェードアウト時間の設定が`0`でない場合は、フェードアウトします。
 - フェードアウト時間が`0`の場合は即座に止まります。
 
+#### BGM再生を即座に止める
+```cs:
+Sound.Music = Sound.ShutUp;
+```
+
+- フェードアウトの設定に関わらず即座に止まります。
+
 ### BGMプレイリストを再生する
 - プレイリストはBGMの再生の一部で、BGMの音量の設定や再生の停止などによって制御されます。
 - プレイリスト再生中に単曲の再生を開始した場合、プレイリストの再生はキャンセルされます。
@@ -246,6 +254,23 @@ Sound.MusicPlayNext ();
 Sound.MusicPlayNext (-1);
 ```
 
+#### プレイリストの再生を停止する
+```cs:
+Sound.Music = Sound.Silent;
+```
+
+```cs:
+Sound.Music = Sound.ShutUp;
+```
+
+- BGM再生を停止することで、プレイリストの再生が停止します。
+
+```cs:
+Sound.Music = number;
+```
+
+- BGMを単曲再生することでも、プレイリストの再生が停止します。
+
 #### 再生中のプレイリストのインデックスを得る
 ```cs:
 int index = Sound.MusicPlayNext (0);
@@ -259,17 +284,27 @@ Sound.Mute = false; // 音を戻す
 
 - 音が出ないだけで、既存の再生は継続しますし、新たな再生も有効です。
 
-### コンポーネントの動的な生成
-- コンポーネントをシーンに最初からアタッチせず、スクリプトから動的にアタッチすることも可能です。
-- シーンにコンポーネントが複数存在する場合、最初に起動した唯一つが有効化されます。
-- 有効だったコンポーネントが無効化(抹消)されると、次に登録された一つが有効化されます。
+### コンポーネントの挙動と制御
+- 厳密には異なりますが、シングルトン風に動作し、シーンにインスタンスが複数存在する場合でも、常に一つだけが稼働します。
+- インスタンスが生成され`Awake`が呼ばれると初期化が試みられます。
+  - 最初のインスタンスが初期化されると、他のインスタンスの初期化は抑制されます。
+  - 未初期化のインスタンスは何も処理しません。
+- 稼働していたインスタンスが抹消されると、次に登録されていた一つが初期化されて稼働を始めます。
+  - 抹消時には全ての再生が停止します。
+- インスペクタや動的生成で設定可能なパラメータの一部は、動的に再設定可能です。
+  - オーディオクリップを再設定すると再生が停止します。
 
-#### 引数に応じて生成
+#### 動的な生成
+- サンプルでは、あらかじめシーンにコンポーネントをアタッチしてありますが、実行時に動的にアタッチすることも可能です。
+
+##### 引数に応じて生成する
 ```cs:
 Sound.Attach (GameObject gameObject, int effectMax, float effectInitialVolume, float musicInitialVolume, float musicFadeInTime, float musicFadeOutTime, float musicIntervalTime, ICollection<AudioClip> effectClip, ICollection<AudioClip> musicClip);
 ```
 
-#### 複製して生成
+##### 複製して生成する
+- あくまでも設定内容の複製であり、インスタンス間での再生状況の引き継ぎが行われるわけではありません。
+
 ```cs:
 Sound.Attach (GameObject gameObject, Sound origin);
 ```
