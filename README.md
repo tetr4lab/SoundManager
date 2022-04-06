@@ -40,16 +40,16 @@ tags: Unity C# uGUI
 ![18d361cc-4516-56f0-2839-09e6a6e96ba2](https://user-images.githubusercontent.com/48040768/158546598-c2e6527a-000c-48b4-b05b-f1a4980fc912.png)
 
 
-|項目|説明|初期値|範囲|動的変更
-|:---|:---|---:|:--:|:--:|
-|Sound Effect Max|SE同時再生数|5|1\~|不可
-|Sound Effect Initial Volume|SE初期音量|0.5|0\~1.0|不可
-|Sound Music Initial Volume|BGM初期音量|0.5|0\~1.0|不可
-|Sound Music Fade In Time|BGMフェードイン時間|0.0|0\~|`Sound.MusicFadeInTime`
-|Sound Music Fade Out Time|BGMフェードアウト時間|0.0|0\~|`Sound.MusicFadeOutTime`
-|Sound Music Interval Time|BGMインターバル時間|0.0|\~|`Sound.MusicIntervalTime`
-|Sound Effect Clip|SEオーディオクリップ|-|-|`SoundE.EffectClip`
-|Sound Music Clip|BGMオーディオクリップ|-|-|`Sound.MusicClip`
+|項目|説明|型|初期値|範囲|動的変更
+|:---|:---|:---|---:|:--:|:--:|
+|Sound Effect Max|SE同時再生数|int|5|1\~|不可
+|Sound Effect Initial Volume|SE初期音量|float|0.5|0\~1.0|不可
+|Sound Music Initial Volume|BGM初期音量|float|0.5|0\~1.0|不可
+|Sound Music Fade In Time|BGMフェードイン時間|float|0.0|0\~|`Sound.MusicFadeInTime`
+|Sound Music Fade Out Time|BGMフェードアウト時間|float|0.0|0\~|`Sound.MusicFadeOutTime`
+|Sound Music Interval Time|BGMインターバル時間|float|0.0|\~|`Sound.MusicIntervalTime`
+|Sound Effect Clip|SEオーディオクリップ|AudioClip []|null|-|`SoundE.EffectClip`
+|Sound Music Clip|BGMオーディオクリップ|AudioClip []|null|-|`Sound.MusicClip`
 
 ## 使い方
 - 使用するスクリプトの冒頭で以下を宣言してください。
@@ -285,28 +285,40 @@ Sound.Mute = false; // 音を戻す
 - 音が出ないだけで、既存の再生は継続しますし、新たな再生も有効です。
 
 ### コンポーネントの挙動と制御
-- 厳密には異なりますが、シングルトン風に動作し、シーンにインスタンスが複数存在する場合でも、常に一つだけが稼働します。
+- シングルトン風(厳密には異なります)に動作し、シーンにインスタンスが複数存在する場合でも、常に一つだけが稼働します。
 - インスタンスが生成され`Awake`が呼ばれると初期化が試みられます。
   - 最初のインスタンスが初期化されると、他のインスタンスの初期化は抑制されます。
   - 未初期化のインスタンスは何も処理しません。
-- 稼働していたインスタンスが抹消されると、次に登録されていた一つが初期化されて稼働を始めます。
-  - 抹消時には全ての再生が停止します。
+- 稼働していたインスタンスが破棄されると、次に登録されていた一つが初期化されて稼働を始めます。
+  - 破棄時には全ての再生が停止します。
 - インスペクタや動的生成で設定可能なパラメータの一部は、動的に再設定可能です。
   - オーディオクリップを再設定すると再生が停止します。
 
 #### 動的な生成
-- サンプルでは、あらかじめシーンにコンポーネントをアタッチしてありますが、実行時に動的にアタッチすることも可能です。
+- 指定したオブジェクトに、コンポーネントを動的にアタッチすることが可能です。
+- 指定されたオブジェクトの既存の`Sound`コンポーネントは、新しいインスタンスの生成直後に全て削除されます。
+- サンプルでは、あらかじめシーンにコンポーネントをアタッチしてありますが、Resetボタンを押すとコンポーネントが再生成されます。
 
 ##### 引数に応じて生成する
+- コンポーネントをアタッチするゲームオブジェクトを指定し、生成されたインスタンスを得ます。
+
 ```cs:
-Sound.Attach (GameObject gameObject, int effectMax, float effectInitialVolume, float musicInitialVolume, float musicFadeInTime, float musicFadeOutTime, float musicIntervalTime, ICollection<AudioClip> effectClip, ICollection<AudioClip> musicClip);
+Sound sound = Sound.Attach (gameObject, effectMax, effectInitialVolume, musicInitialVolume, musicFadeInTime, musicFadeOutTime, musicIntervalTime, effectClip, musicClip);
 ```
 
+- デフォルトの設定で生成する場合は、ゲームオブジェクト以外の引数を省略可能です。
+
+```cs:
+Sound sound = Sound.Attach (gameObject);
+```
+
+
 ##### 複製して生成する
+- コンポーネントをアタッチするゲームオブジェクトを指定し、生成されたインスタンスを得ます。
 - あくまでも設定内容の複製であり、インスタンス間での再生状況の引き継ぎが行われるわけではありません。
 
 ```cs:
-Sound.Attach (GameObject gameObject, Sound origin);
+Sound sound = Sound.Attach (gameObject, origin);
 ```
 
 ## 謝辞

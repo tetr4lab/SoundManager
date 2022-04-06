@@ -149,12 +149,12 @@ public class SampleMain : MonoBehaviour {
 
 	/// <summary>リセットボタン</summary>
 	public void OnPressResetButton () {
+		Debug.Log ($"Reset");
 		// コンポーネントの切り替え
-        if (soundContainer) {
+		if (soundContainer) {
             var instance = soundContainer.GetComponent<Sound> ();
             if (instance) {
                 Sound.Attach (soundContainer, instance);
-                Destroy (instance);
                 Init ();
             }
         }

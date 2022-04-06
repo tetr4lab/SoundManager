@@ -24,13 +24,13 @@ namespace SoundManager {
 	///     アクティブなインスタンスが消滅すると、次のインスタンスがアクティベートされる
 	/// 設定
 	///   SerializeFieldを参照
-	/// 機能
+	/// 主要機能
 	///   共通
-	///     消音
+	///     消音、動的生成、再設定
 	///   効果音
 	///     重ねて再生、止めてから再生、再生していなければ再生、停止、音量設定
 	///   楽曲
-	///     再生、停止、音量設定 (0にすると再生を停止)、一時的な音量設定
+	///     再生、停止、音量設定、一時的な音量設定
 	public class Sound : MonoBehaviour {
 
 		// オブジェクト要素
@@ -794,9 +794,10 @@ namespace SoundManager {
 			ICollection<AudioClip> musicClip = null
 		) {
 			if (!gameObject) { return null; }
-			var sound = gameObject.GetComponent<Sound> ();
-			if (sound) { Destroy (sound); }
-            sound = (Sound) gameObject.AddComponent (typeof (Sound));
+			foreach (var snd in gameObject.GetComponents<Sound> ()) {
+				Destroy (snd);
+			}
+            var sound = (Sound) gameObject.AddComponent (typeof (Sound));
 			sound.soundEffectMax = effectMax;
 			sound.soundEffectInitialVolume = effectInitialVolume;
 			sound.soundMusicInitialVolume = musicInitialVolume;
