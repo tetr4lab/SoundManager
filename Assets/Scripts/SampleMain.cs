@@ -11,6 +11,7 @@ public class SampleMain : MonoBehaviour {
 	// 停止ボタン
 	[SerializeField] private Button effectStopButton = default;
 	[SerializeField] private Button musicStopButton = default;
+	[SerializeField] private Button musicFadeOutButton = default;
 	[SerializeField] private Button playlistStopButton = default;
 	// 効果音パネル
 	[SerializeField] private Image [] effectPanels = default;
@@ -52,6 +53,7 @@ public class SampleMain : MonoBehaviour {
 		// 再生していないなら停止ボタンを操作不能に
 		effectStopButton.interactable = Sound.IsPlayingEffect;
 		musicStopButton.interactable = Sound.IsPlayingMusic;
+		musicFadeOutButton.interactable = Sound.IsPlayingMusic;
 		playlistStopButton.interactable = Sound.Playlist != null && Sound.Playlist.Length > 0;
 		// 再生中のパネルに着色
 		for (var i = 0; i < effectPanels.Length; i++) {
