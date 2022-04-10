@@ -235,6 +235,11 @@ Sound.Playlist = new int [] { number, number1, number2, number3, };
   - 設定に従って曲間にフェードとインターバルが適用されます。
 - 単一曲の再生中に同一の曲を含むプレイリストを再生した場合は、リストの途中からの開始として曲の再生が継続されます。
 
+##### 全曲プレイリストを再生する
+```cs:
+Sound.Playlist = Sound.AllMusicPlaylist;
+```
+
 #### 再生中のプレイリストを得る
 ```cs:
 int [] playlist = Sound.Playlist;

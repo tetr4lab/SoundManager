@@ -720,6 +720,20 @@ namespace SoundManager {
 			}
 		}
 
+		/// <summary>全曲プレイリスト</summary>
+		public static int [] AllMusicPlaylist {
+			get {
+				if (_allMusicPlaylist == null || _allMusicPlaylist.Length != MusicCount) {
+					_allMusicPlaylist = new int [MusicCount];
+					for (var i = 0; i < _allMusicPlaylist.Length; i++) {
+						_allMusicPlaylist [i] = i;
+					}
+				}
+				return _allMusicPlaylist;
+			}
+		}
+		private static int [] _allMusicPlaylist = null; // キャッシュ
+
 		/// <summary>プレイリストの設定</summary>
 		public static int [] Playlist {
 			get => sound?.musicPlaylist;
