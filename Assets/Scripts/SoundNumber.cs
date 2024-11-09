@@ -1,4 +1,4 @@
-﻿using SoundManager;
+﻿using Tetr4lab;
 
 /// <summary>
 /// 効果音番号 ©効果音ラボ https://soundeffect-lab.info/

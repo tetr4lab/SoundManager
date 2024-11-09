@@ -6,7 +6,7 @@ tags: Unity C# uGUI
 # シンプルなサウンドマネージャー (Unity)
 
 ## 前提
-- Unity 2020.3.33f1
+- Unity 2022.3.51f1
 - 使用に際して、C#でスクリプトを書く必要があります。
 - UIの操作音やBGMなど、音源の位置が画面に固定されている場合に適しています。
 
@@ -32,7 +32,10 @@ tags: Unity C# uGUI
 - 設定を変更する際は、次項を参照してください。
 
 ### 任意のプロジェクト
-- プロジェクトに`Sound.cs`をインポートしてください。
+- `Package Manager`で`Add package from git URL...`から、以下のURLを入力します。
+```
+https://github.com/tetr4lab/SoundManager.git?path=/Assets/SoundManager
+```
 - シーンの適当なオブジェクトに、スクリプト`Sound.cs`をアタッチしてください。
 - インスペクタで、`Sound Effect Clip`と`Sound Music Clip`のSizeを必要なだけ増やし、オーディオクリップを設定してください。
 - 必要に応じてパラメータを調整してください。

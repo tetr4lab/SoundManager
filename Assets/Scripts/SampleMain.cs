@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using SoundManager;
+using Tetr4lab;
 
 /// <summary>メイン (参考)</summary>
 public class SampleMain : MonoBehaviour {

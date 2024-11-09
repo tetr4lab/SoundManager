@@ -1,12 +1,10 @@
-﻿//	Copyright© tetr4lab.
-
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System;
 using DateTime = System.DateTime;
 using UnityEngine;
 
-namespace SoundManager {
+namespace Tetr4lab {
 
 	/// <summary>サウンドマネージャー</summary>
 	/// 概念

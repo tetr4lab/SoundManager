@@ -1,0 +1,22 @@
+{
+    "name": "org.tetr4lab.soundmanager",
+    "version": "1.0.0",
+    "displayName": "SoundManager",
+    "description": "a simple audio player for music and sound effects",
+    "unity": "2021.3",
+    "documentationUrl": "https://github.com/tetr4lab/SoundManager.git?path=/Assets/SoundManager",
+    "licenses": "MIT",
+    "dependencies": {},
+    "keywords": [
+        "Sound",
+        "SE",
+        "BGM",
+        "Music",
+        "Unity"
+    ],
+    "author": {
+        "name": "tetr4lab.",
+        "email": "info@tetr4lab.org",
+        "url": "https://tetr4lab.org/"
+    }
+}
