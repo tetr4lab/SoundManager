@@ -1,6 +1,6 @@
 {
     "name": "org.tetr4lab.soundmanager",
-    "rootNamespace": "Tetr4lab.SoundManager",
+    "rootNamespace": "Tetr4lab.Audio",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
