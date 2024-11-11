@@ -1,5 +1,5 @@
 {
-    "name": "org.tetr4lab.soundmanager",
+    "name": "org.tetr4lab.unity.soundmanager",
     "version": "1.0.0",
     "displayName": "SoundManager",
     "description": "a simple audio player for music and sound effects",

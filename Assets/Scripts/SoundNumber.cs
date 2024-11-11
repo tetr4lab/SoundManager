@@ -1,4 +1,4 @@
-﻿using Tetr4lab.Audio;
+﻿using Tetr4lab.UnityEngine.Audio;
 
 /// <summary>
 /// 効果音番号 ©効果音ラボ https://soundeffect-lab.info/

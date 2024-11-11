@@ -4,7 +4,7 @@ using System;
 using DateTime = System.DateTime;
 using UnityEngine;
 
-namespace Tetr4lab.Audio {
+namespace Tetr4lab.UnityEngine.Audio {
 
 	/// <summary>サウンドマネージャー</summary>
 	/// 概念

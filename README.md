@@ -56,10 +56,9 @@ https://github.com/tetr4lab/SoundManager.git?path=/Assets/SoundManager
 
 ## 使い方
 - 使用するスクリプトの冒頭で以下を宣言してください。
-  - あるいは、以降で`Sound.~`と書かれている部分を`SoundManager.Sound.~`とすることで、宣言せずとも使用可能です。
 
 ```cs:
-Using SoundManager;
+Using Tetr4lab.UnityEngine.Audio;
 ```
 
 ### SEを再生する

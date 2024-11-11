@@ -1,6 +1,6 @@
 {
-    "name": "org.tetr4lab.soundmanager",
-    "rootNamespace": "Tetr4lab.Audio",
+    "name": "org.tetr4lab.unity.soundmanager",
+    "rootNamespace": "Tetr4lab.UnityEngine.Audio",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
